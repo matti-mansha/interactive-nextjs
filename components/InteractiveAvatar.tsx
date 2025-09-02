@@ -26,7 +26,7 @@ import { AVATARS } from "@/app/lib/constants";
 const DEFAULT_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low, // Avatar Quality: low
   avatarName: "Shawn_Therapist_public", // Avatar ID: Shawn Therapist
-  knowledgeId: "84d796caa79442fd807ddf30bdaaf46f", // Custom Knowledge Base ID
+  knowledgeId: "7ff1d5e3249f49f7b9e75a73963b322e", // Custom Knowledge Base ID
   voice: {
     rate: 1.5,
     emotion: VoiceEmotion.EXCITED,
