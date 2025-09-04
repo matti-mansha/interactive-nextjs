@@ -45,6 +45,7 @@ function InteractiveAvatar() {
   const { startVoiceChat } = useVoiceChat();
 
   const [config, setConfig] = useState<StartAvatarRequest>(DEFAULT_CONFIG);
+  const [chatMode, setChatMode] = useState<'text' | 'voice' | 'video'>('text');
 
   const mediaStream = useRef<HTMLVideoElement>(null);
 
@@ -64,7 +65,9 @@ function InteractiveAvatar() {
     }
   }
 
-  const startSessionV2 = useMemoizedFn(async (isVoiceChat: boolean) => {
+  const startSessionV2 = useMemoizedFn(async (mode: 'text' | 'voice' | 'video') => {
+    setChatMode(mode);
+    const isVoiceChat = mode === 'voice' || mode === 'video';
     try {
       const newToken = await fetchAccessToken();
       const avatar = initAvatar(newToken);
@@ -128,7 +131,11 @@ function InteractiveAvatar() {
       <div className="flex flex-col rounded-xl bg-zinc-900 overflow-hidden">
         <div className="relative w-full aspect-video overflow-hidden flex flex-col items-center justify-center">
           {sessionState !== StreamingAvatarSessionState.INACTIVE ? (
-            <AvatarVideo ref={mediaStream} />
+            <AvatarVideo 
+              ref={mediaStream} 
+              showUserVideo={chatMode === 'video'}
+              userVideoPosition="bottom-right"
+            />
           ) : (
             // Form is hidden as requested - configuration is now hardcoded
             // <AvatarConfig config={config} onConfigChange={setConfig} />
@@ -139,15 +146,26 @@ function InteractiveAvatar() {
         </div>
         <div className="flex flex-col gap-3 items-center justify-center p-4 border-t border-zinc-700 w-full">
           {sessionState === StreamingAvatarSessionState.CONNECTED ? (
-            <AvatarControls />
+            <AvatarControls 
+              chatMode={chatMode}
+              onChatModeChange={(newMode) => {
+                setChatMode(newMode);
+                // Handle mode switching during active session if needed
+                if (newMode === 'voice' || newMode === 'video') {
+                  startVoiceChat();
+                }
+              }}
+            />
           ) : sessionState === StreamingAvatarSessionState.INACTIVE ? (
             <div className="flex flex-row gap-4">
-              {/* Voice chat functionality commented out but preserved */}
-              {/* <Button onClick={() => startSessionV2(true)}>
-                Start Voice Chat
-              </Button> */}
-              <Button onClick={() => startSessionV2(false)}>
+              <Button onClick={() => startSessionV2('text')}>
                 Start Text Chat
+              </Button>
+              <Button onClick={() => startSessionV2('voice')}>
+                Start Voice Chat
+              </Button>
+              <Button onClick={() => startSessionV2('video')}>
+                Start Video Chat
               </Button>
             </div>
           ) : (

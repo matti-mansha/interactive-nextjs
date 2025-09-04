@@ -8,7 +8,15 @@ import { useInterrupt } from "../logic/useInterrupt";
 import { AudioInput } from "./AudioInput";
 import { TextInput } from "./TextInput";
 
-export const AvatarControls: React.FC = () => {
+interface AvatarControlsProps {
+  chatMode?: 'text' | 'voice' | 'video';
+  onChatModeChange?: (mode: 'text' | 'voice' | 'video') => void;
+}
+
+export const AvatarControls: React.FC<AvatarControlsProps> = ({ 
+  chatMode = 'text', 
+  onChatModeChange 
+}) => {
   const {
     isVoiceChatLoading,
     isVoiceChatActive,
@@ -23,33 +31,44 @@ export const AvatarControls: React.FC = () => {
         className={`bg-zinc-700 rounded-lg p-1 ${isVoiceChatLoading ? "opacity-50" : ""}`}
         disabled={isVoiceChatLoading}
         type="single"
-        value={isVoiceChatActive || isVoiceChatLoading ? "voice" : "text"}
+        value={chatMode}
         onValueChange={(value) => {
-          if (value === "voice" && !isVoiceChatActive && !isVoiceChatLoading) {
-            startVoiceChat();
-          } else if (
-            value === "text" &&
-            isVoiceChatActive &&
-            !isVoiceChatLoading
-          ) {
-            stopVoiceChat();
+          const newMode = value as 'text' | 'voice' | 'video';
+          if (onChatModeChange) {
+            onChatModeChange(newMode);
+          }
+          
+          if (newMode === "voice" || newMode === "video") {
+            if (!isVoiceChatActive && !isVoiceChatLoading) {
+              startVoiceChat();
+            }
+          } else if (newMode === "text") {
+            if (isVoiceChatActive && !isVoiceChatLoading) {
+              stopVoiceChat();
+            }
           }
         }}
       >
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[90px] text-center"
-          value="voice"
-        >
-          Voice Chat
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[90px] text-center"
+          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
           value="text"
         >
-          Text Chat
+          Text
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
+          value="voice"
+        >
+          Voice
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
+          value="video"
+        >
+          Video
         </ToggleGroupItem>
       </ToggleGroup>
-      {isVoiceChatActive || isVoiceChatLoading ? <AudioInput /> : <TextInput />}
+      {(isVoiceChatActive || isVoiceChatLoading) && (chatMode === 'voice' || chatMode === 'video') ? <AudioInput /> : <TextInput />}
       <div className="absolute top-[-70px] right-3">
         <Button className="!bg-zinc-700 !text-white" onClick={interrupt}>
           Interrupt
