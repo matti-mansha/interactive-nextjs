@@ -21,9 +21,6 @@ import { StreamingAvatarProvider, StreamingAvatarSessionState } from "./logic";
 import { LoadingIcon } from "./Icons";
 import { MessageHistory } from "./AvatarSession/MessageHistory";
 
-// If you want to mirror the intro in text history, wire your store and call addMessageToHistory()
-// import { useMessageStore } from "./AvatarSession/useMessageStore";
-
 // --- Intro message that repeats every time the session becomes ready ---
 const INTRO_MESSAGE =
   "Hi! I'm your Sandhurst Coach, here to share insights from 'Stand Up Straight' by Major General Paul Nanson. I'm ready to answer your questions about leadership and the principles taught at the Royal Military Academy Sandhurst. How can I assist you today?";
@@ -56,6 +53,9 @@ function InteractiveAvatar() {
 
   const mediaStream = useRef<HTMLVideoElement>(null);
 
+  // store the timeout id so we can clear it on unmount / stop
+  const introTimeoutRef = useRef<number | null>(null);
+
   async function fetchAccessToken() {
     try {
       const response = await fetch("/api/get-access-token", { method: "POST" });
@@ -87,19 +87,31 @@ function InteractiveAvatar() {
           console.log("Stream disconnected");
         });
 
-        // Proactive, repeatable greeting
+        // Proactive, repeatable greeting with a 5 second delay
         avatar.on(StreamingEvents.STREAM_READY, async (event) => {
           console.log(">>>>> Stream ready:", event.detail);
-          try {
-            await avatar.speak({
-              text: INTRO_MESSAGE,
-              taskType: TaskType.REPEAT, // exact wording
-            });
-            // Optionally mirror in text history:
-            // addMessageToHistory({ role: "avatar", content: INTRO_MESSAGE });
-          } catch (err) {
-            console.error("Failed to send intro message:", err);
+
+          // clear any previous timeout just in case
+          if (introTimeoutRef.current) {
+            window.clearTimeout(introTimeoutRef.current);
+            introTimeoutRef.current = null;
           }
+
+          // schedule the intro speak after 5 seconds
+          introTimeoutRef.current = window.setTimeout(async () => {
+            try {
+              await avatar.speak({
+                text: INTRO_MESSAGE,
+                taskType: TaskType.REPEAT,
+              });
+              // Optionally mirror in text history:
+              // addMessageToHistory({ role: "avatar", content: INTRO_MESSAGE });
+            } catch (err) {
+              console.error("Failed to send intro message:", err);
+            } finally {
+              introTimeoutRef.current = null;
+            }
+          }, 5000); // 5000ms = 5s
         });
 
         avatar.on(StreamingEvents.USER_START, (event) => {
@@ -107,6 +119,12 @@ function InteractiveAvatar() {
         });
         avatar.on(StreamingEvents.USER_STOP, (event) => {
           console.log(">>>>> User stopped talking:", event);
+          // If you want the avatar to interrupt the intro if user starts speaking,
+          // clear the scheduled intro here:
+          if (introTimeoutRef.current) {
+            window.clearTimeout(introTimeoutRef.current);
+            introTimeoutRef.current = null;
+          }
         });
         avatar.on(StreamingEvents.USER_END_MESSAGE, (event) => {
           console.log(">>>>> User end message:", event);
@@ -133,7 +151,12 @@ function InteractiveAvatar() {
     }
   );
 
+  // clear timeout and stop avatar on unmount
   useUnmount(() => {
+    if (introTimeoutRef.current) {
+      window.clearTimeout(introTimeoutRef.current);
+      introTimeoutRef.current = null;
+    }
     stopAvatar();
   });
 
