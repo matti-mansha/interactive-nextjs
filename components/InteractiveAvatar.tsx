@@ -28,8 +28,8 @@ const INTRO_MESSAGE =
 // Hardcoded configuration as requested
 const DEFAULT_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low,
-  avatarName: "Shawn_Therapist_public",
-  knowledgeId: "f6ae6a2fbf694b769a248cd2a55518e4",
+  avatarName: "c8c63b0dcca1480fb7f06e2c14236112",
+  knowledgeId: "7ff1d5e3249f49f7b9e75a73963b322e",
   voice: {
     rate: 1.5,
     emotion: VoiceEmotion.EXCITED,
