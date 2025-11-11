@@ -23,7 +23,7 @@ import { MessageHistory } from "./AvatarSession/MessageHistory";
 
 // --- Intro message that repeats every time the session becomes ready ---
 const INTRO_MESSAGE =
-  "Hi! I’m your Sandhurst Coach, here to share my insights from Stand Up Straight. I’m ready to answer your questions about leadership and the principles we teach at the Royal Military Academy Sandhurst. How can I help you today?";
+  "Hi. I am the Digital Twin of Major General Paul Nanson - the former Commandant of the Royal Military Academy Sandhurst and author of “Standup Straight”, exploring the fundamentals of leadership at the academy. Lets explore these principles together. Where would you like to start?";
 
 // Hardcoded configuration as requested
 const DEFAULT_CONFIG: StartAvatarRequest = {
